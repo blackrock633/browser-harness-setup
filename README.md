@@ -1,30 +1,60 @@
-# Browser Use setup for a friend
+# Browser Harness Setup
 
-Set up local Chrome control for Codex on macOS using the current Browser Use browser harness. This repository contains setup helpers, not a copy of the upstream project.
+Connect an AI coding agent to local Chrome using Browser Harness. Works with agents that can run shell commands, including Codex, Claude Code, Antigravity (agy), and custom agent tools.
 
-## Quick start
+## Requirements
 
-You need Chrome, Codex, and [uv](https://docs.astral.sh/uv/getting-started/installation/). Install uv using its official instructions first. Then download this repository, open Terminal in its folder, and run:
+- macOS or Linux with Bash (Windows users can adapt the commands to their shell).
+- Chrome with remote debugging available.
+- [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- An agent that can run local shell commands. Skill discovery depends on the agent; a custom skill path or manual instructions work when automatic discovery is unavailable.
+
+## Install
+
+Download or clone this repository and open a terminal in its folder. Choose one:
 
 ```bash
+# Install the CLI and save instructions locally (agent-independent default)
 bash scripts/setup.sh
+
+# Register a skill for Codex
+bash scripts/setup.sh --target codex
+
+# Register a skill for Claude Code
+bash scripts/setup.sh --target claude
+
+# Use any agent's supported skill directory, including agy
+bash scripts/setup.sh --skill-dir /absolute/path/to/your/skills/browser-harness
 ```
 
-Open Chrome and visit `chrome://inspect/#remote-debugging`. Enable **Allow remote debugging for this browser instance**. Then run:
+The default saves instructions to `./.browser-harness/SKILL.md`. For Antigravity or another agent, point it to this file, copy its contents into the agent's instructions, or use `--skill-dir` with that agent's configured skill location. No particular Antigravity skill directory is assumed.
 
-```bash
-bash scripts/check.sh
+The installer updates Browser Harness using Python 3.12 through uv. It backs up an existing skill before replacing it. It does not connect to Chrome during installation. Run it from the directory where you want the default instructions saved.
+
+## Connect Chrome
+
+1. Open Chrome and visit `chrome://inspect/#remote-debugging`.
+2. Enable **Allow remote debugging for this browser instance**.
+3. Run `bash scripts/check.sh`.
+4. Approve Chrome's connection prompt if shown.
+
+A successful check prints information about the current page. This verifies the CLI connection; the agent must also be allowed to execute shell commands.
+
+## Give your agent these instructions
+
+Replace the skill path with the location printed by the installer:
+
+```text
+Read the Browser Harness instructions at .browser-harness/SKILL.md.
+Use the browser-harness command for browser interaction.
+Begin by checking the current page:
+
+browser-harness <<'PYTHON'
+print(page_info())
+PYTHON
 ```
 
-Approve Chrome’s connection prompt if one appears. A successful check prints information about the current page. You can now ask Codex to use the browser-harness skill to work in Chrome.
-
-## What the installer does
-
-- Installs or updates `browser-harness` with Python 3.12 through uv.
-- Writes the upstream skill into your Codex skills folder. If that skill already exists, saves a dated backup first.
-- Leaves Chrome permission changes to you and does not open a browser connection during installation.
-
-Local Chrome control does not require a Browser Use API key. The helper does not enable recordings or copy cookies, profiles, credentials, or personal browser data into this repository. Browser control can access your signed-in tabs, so only run instructions you trust. Recording is optional; if you enable it later, screenshots and traces may contain page content.
+Local Chrome control needs no API key. The browser connection can access signed-in tabs, so use instructions you trust. Recording is optional and may capture page content; this installer does not enable it.
 
 ## Troubleshooting
 
@@ -32,18 +62,10 @@ Local Chrome control does not require a Browser Use API key. The helper does not
 browser-harness --doctor
 ```
 
-Keep a waiting connection check running while approving Chrome’s prompt. On macOS, if approval is blocked, run `browser-harness mac-approve` in a second Terminal window; it may ask for Accessibility access for the app running it. Then return to the original check.
+Keep a waiting connection check running while approving Chrome's prompt. On macOS, if approval is blocked, run `browser-harness mac-approve` in a second terminal; it may require Accessibility access for the app running it. Return to the original check afterward. On other systems, approve the Chrome prompt manually.
 
-If Terminal cannot find uv or browser-harness after installation, open a new Terminal window and retry. If Codex does not discover the new skill, restart Codex.
+If the command is missing after installation, open a new terminal to refresh PATH. If an agent does not discover a skill, reload the agent or give it the generated instructions directly. Remote servers without local Chrome require a separate remote browser setup.
 
-## About the name
+## Maintenance
 
-Our earlier setup installed `browser-use` and registered a skill with that name. The upstream installation guide now uses `browser-harness`. This starter follows that current guide; it does not remove existing browser-use installations or skills. If Codex selects an older user-installed skill, inspect it and remove that stale skill manually when appropriate. Never remove bundled plugin caches.
-
-## Sources
-
-- [Official installation guide](https://github.com/browser-use/browser-harness/blob/main/install.md)
-- [Browser harness source](https://github.com/browser-use/browser-harness)
-- [Browser Use project](https://github.com/browser-use/browser-use)
-
-Upstream commands may change. Consult the official guide if your installed version behaves differently.
+Run the same setup command again to update the CLI and skill instructions. The generated skill comes from the installed package, so it matches that version. This repository provides installation helpers; Browser Harness is installed separately from its package distribution.
